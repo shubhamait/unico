@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+	http://www.springframework.org/schema/beans/spring-beans.xsd 	
+	http://cxf.apache.org/jaxrs
+	http://cxf.apache.org/schemas/jaxrs.xsd		
+	http://cxf.apache.org/jaxws		
+	http://cxf.apache.org/schemas/jaxws.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/data/mongo 
+	http://www.springframework.org/schema/data/mongo/spring-mongo-1.5.xsd">
+
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+	<context:component-scan base-package="com.unico.services" />
+
+	<!-- beans to be used for SOAP/REST -->
+	<bean id="pushservice" class="com.unico.services.rest.PushServiceImpl" />
+	<bean id="gcdservice" class="com.unico.services.soap.GCDServiceImpl" />
+
+
+	<bean id="cachingConnectionFactory"
+		class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="tcp://localhost:61616" />
+			</bean>
+		</property>
+		<property name="sessionCacheSize" value="10" />
+		<property name="cacheProducers" value="true" />
+		<property name="cacheConsumers" value="true" />
+	</bean>
+
+	<bean id="msgQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="sync.queue" />
+	</bean>
+
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="cachingConnectionFactory" />
+		<property name="defaultDestination" ref="msgQueue" />
+		<property name="receiveTimeout" value="1000" />
+	</bean>
+
+
+
+	<!-- JAX-RS -->
+	<jaxrs:server id="restserver" address="/">
+		<jaxrs:serviceBeans>
+			<ref bean="pushservice" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+			<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider" />
+		</jaxrs:providers>
+	</jaxrs:server>
+
+	<!-- JAX-WS -->
+	<jaxws:endpoint implementor="#gcdservice" address="/gcdservice" />
+
+
+	<!-- MongoDB -->
+
+	<mongo:mongo host="localhost" port="27017" id="mongo" />
+
+	<mongo:db-factory dbname="journaldev" mongo-ref="mongo"
+		id="mongoDbFactory" />
+
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+	</bean>
+
+	<bean id="gcdDao" class="com.unico.services.dao.impl.GCDDaoImpl">
+		<constructor-arg name="mongoOps" ref="mongoTemplate" />
+	</bean>
+	<bean id="gcdCalculator" class="com.unico.services.GCDCalculator" />
+
+</beans>

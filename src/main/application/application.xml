@@ -1,0 +1,11 @@
+<application>
+	<display-name>Sample Todo</display-name>
+	<module>
+		<web>
+			<web-uri>
+				unico-services.war
+			</web-uri>
+			<context-root>/unico</context-root>
+		</web>
+	</module>
+</application>

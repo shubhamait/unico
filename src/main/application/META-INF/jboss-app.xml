@@ -1,0 +1,5 @@
+<jboss-app>
+	<loader-repository>
+		unico:archive=unico.ear
+	</loader-repository>
+</jboss-app>
