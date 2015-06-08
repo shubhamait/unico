@@ -1,0 +1,12 @@
+Assumptions:
+Before build and deployment of the application:
+1) Install & start mongoDB and update details in unico/src/main/webapp/WEB-INF/beans.xml i.e. host, port and dbname.
+2) Install & start ActiveMQ for connection establishment and create queue "sync.queue". Also update the brokerURL for ActiveMQ server in beans.xml
+
+Tech-Stack:
+
+Used Spring, CXF to implement SOAP and REST services.
+ActiveMQ for JMS implementation and MongoDB for Nosql db.
+Added JUnit for unit test and Mockito for mocking.
+Maven for build integration.
+JBoss as application server.
